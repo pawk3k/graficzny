@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt, mpld3
+import matplotlib.pyplot as plt
 import os
 
 
@@ -85,9 +85,6 @@ def plot(t0, tmax, **kwargs):
     plt.plot(ts1, ys1, label=le)
     plt.legend()
 
-
-import requests
-# from flask.ext.bootstrap import Bootstrap
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
@@ -117,7 +114,5 @@ def result():
         with open(new_path, 'w') as f:
             f.write(html)
         return render_template("test.html", result=result)
-
-
 if __name__ == "__main__":
     app.run()
