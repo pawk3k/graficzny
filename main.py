@@ -17,8 +17,6 @@ class PID:
 
 dt = 0.01
 g = 9.81
-
-
 def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, f_max=3000, use_r_h=True):
     global dt, g
     tmax = int(tmax)
@@ -30,14 +28,19 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
     v_opt = float(v_opt)
     f_max = int(f_max)
     use_r_h = bool(use_r_h)
-    n = int((int(tmax) - t0) // dt)
-    r_h = 0  # reference height
+    n = int((tmax-t0) // dt)
+    if use_r_h:
+        r_h = y0
+    else:
+        r_h = target
+        v_opt = 0.0
+
+    rhs = [r_h, r_h + v_opt*dt]
     t = t0
-    f_add = int(m) * g
+    f_add = m*g
     t0, t1 = 0, dt
-    y1 = int(y0) + int(v0) * dt
+    y1 = y0 + v0 * dt
     ts, ys = [t0, t1], [y0, y1]
-    rhs = [0, v_opt * dt]
     fs = [0, 0]
     vs = [v0, v0]
     pid = PID(50, 0.05, 50)
@@ -45,14 +48,16 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
         t += dt
         if use_r_h:
             if r_h < target:
-                r_h += v_opt * dt
-        else:
-            r_h = target
+                r_h += v_opt*dt
+                if r_h >= target: use_r_h = False
+            if r_h > target:
+                r_h -= v_opt*dt
+                if r_h <= target: use_r_h = False
         rhs += [r_h]
         e = r_h - y1
         f = pid(e, dt)
-        l = max(min(f, f_max) + f_add, 0) - m * g
-        y = (m * (2 * y1 - y0) + l * (dt ** 2) - float(b) * abs(y1 - y0) * (y1 - y0)) / m  # drag b is bidirectional
+        l = max(min(f, f_max) + f_add, 0) - m*g
+        y = (m*(2*y1 - y0) + l*(dt**2) - b*abs(y1-y0)*(y1-y0)) / m  # drag b is bidirectional
         y = max(y, 0)
         ts += [t]
         ys += [y]
@@ -60,8 +65,6 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
         y1 = y
 
     return ts, ys, rhs, fs, vs
-
-
 def plot1(t0, tmax, **kwargs):
     ts, ys, rhs, fs, vs = control_system(t0, tmax, **kwargs)
     plt.title("Wysokość balonu w funkcji czasu")
