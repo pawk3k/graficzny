@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import os
+from bs4 import BeautifulSoup
+
 
 
 class PID:
@@ -86,10 +88,19 @@ def plot(t0, tmax, **kwargs):
     plt.legend()
 
 from flask import Flask, render_template, request
-
+import base64
+from flask import send_file
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+# No caching at all for API endpoints.
+@app.after_request
+def add_header(response):
+    # response.cache_control.no_store = True
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
 
 @app.route('/')
 def student():
@@ -110,9 +121,22 @@ def result():
         plt.show()
         plt.draw()
         fig1.savefig(new_path1, dpi=100)
-        html = 'Some html head32' + '<img src=\'' + 'static/images/graphon.png\'>' + 'Some more html'
-        with open(new_path, 'w') as f:
-            f.write(html)
-        return render_template("test.html", result=result)
+        # html = open(new_path).read()
+        # soup = BeautifulSoup(html)
+        # new_div = soup.new_tag('div')
+        # new_div.string = "abcdef"
+        # soup.html.insert(0, new_div)
+        # print(new_div)
+
+      # '<meta http-equiv=\'refresh\' content=\'1\'/>'
+      #   + '<meta http-equiv=\'refresh\' content=\'1\'/>'
+      #   html1 = '<html>' + '<head>' + '</head>' + '<body>' + '<img src=\'' + 'static/images/graphon.png\'>' +'</body>' + '</html>'
+      #   html1 = base64.encodestring(fig1)
+      #   with open(new_path, 'w') as f:
+      #       f.write(html1)
+        # return render_template("test.html", result=result)
+        return send_file(new_path1, mimetype='image/png')
+
+# @app.route('')
 if __name__ == "__main__":
     app.run()
