@@ -3,7 +3,6 @@ import os
 from bs4 import BeautifulSoup
 
 
-
 class PID:
     def __init__(self, Kp, Ki, Kd):
         self.Kp, self.Ki, self.Kd = Kp, Ki, Kd
@@ -19,6 +18,8 @@ class PID:
 
 dt = 0.01
 g = 9.81
+
+
 def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, f_max=3000, use_r_h=True):
     global dt, g
     tmax = int(tmax)
@@ -30,16 +31,16 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
     v_opt = float(v_opt)
     f_max = int(f_max)
     use_r_h = bool(use_r_h)
-    n = int((tmax-t0) // dt)
+    n = int((tmax - t0) // dt)
     if use_r_h:
         r_h = y0
     else:
         r_h = target
         v_opt = 0.0
 
-    rhs = [r_h, r_h + v_opt*dt]
+    rhs = [r_h, r_h + v_opt * dt]
     t = t0
-    f_add = m*g
+    f_add = m * g
     t0, t1 = 0, dt
     y1 = y0 + v0 * dt
     ts, ys = [t0, t1], [y0, y1]
@@ -50,16 +51,16 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
         t += dt
         if use_r_h:
             if r_h < target:
-                r_h += v_opt*dt
+                r_h += v_opt * dt
                 if r_h >= target: use_r_h = False
             if r_h > target:
-                r_h -= v_opt*dt
+                r_h -= v_opt * dt
                 if r_h <= target: use_r_h = False
         rhs += [r_h]
         e = r_h - y1
         f = pid(e, dt)
-        l = max(min(f, f_max) + f_add, 0) - m*g
-        y = (m*(2*y1 - y0) + l*(dt**2) - b*abs(y1-y0)*(y1-y0)) / m  # drag b is bidirectional
+        l = max(min(f, f_max) + f_add, 0) - m * g
+        y = (m * (2 * y1 - y0) + l * (dt ** 2) - b * abs(y1 - y0) * (y1 - y0)) / m  # drag b is bidirectional
         y = max(y, 0)
         ts += [t]
         ys += [y]
@@ -67,6 +68,8 @@ def control_system(t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, 
         y1 = y
 
     return ts, ys, rhs, fs, vs
+
+
 def plot1(t0, tmax, **kwargs):
     ts, ys, rhs, fs, vs = control_system(t0, tmax, **kwargs)
     plt.title("Wysokość balonu w funkcji czasu")
@@ -87,12 +90,16 @@ def plot(t0, tmax, **kwargs):
     plt.plot(ts1, ys1, label=le)
     plt.legend()
 
+
 from flask import Flask, render_template, request
 import base64
 from flask import send_file
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+
 # No caching at all for API endpoints.
 @app.after_request
 def add_header(response):
@@ -102,41 +109,38 @@ def add_header(response):
     response.headers['Expires'] = '-1'
     return response
 
-@app.route('/')
+
+@app.route('/', methods=['POST', 'GET'])
 def student():
-    return render_template('index.html')
-
-
-@app.route('/result', methods=['POST', 'GET'])
-def result():
     if request.method == 'POST':
         # tmax, m = 750, b = 180.9, y0 = 0, v0 = 0, target = 100, v_opt = 3.5, f_max = 3000, use_r_h = True
         result = request.form
         my_dict = dict(result.items())
         plot1(0, **my_dict)
         cur_path = os.path.dirname(__file__)
-        new_path = os.path.join(cur_path, 'templates/test.html')
+        new_path = os.path.join(cur_path, 'templates/index.html')
         new_path1 = os.path.join(cur_path, 'static/images/graphon.png')
         fig1 = plt.gcf()
         plt.show()
         plt.draw()
         fig1.savefig(new_path1, dpi=100)
-        # html = open(new_path).read()
-        # soup = BeautifulSoup(html)
-        # new_div = soup.new_tag('div')
-        # new_div.string = "abcdef"
-        # soup.html.insert(0, new_div)
-        # print(new_div)
-
-      # '<meta http-equiv=\'refresh\' content=\'1\'/>'
-      #   + '<meta http-equiv=\'refresh\' content=\'1\'/>'
-      #   html1 = '<html>' + '<head>' + '</head>' + '<body>' + '<img src=\'' + 'static/images/graphon.png\'>' +'</body>' + '</html>'
-      #   html1 = base64.encodestring(fig1)
-      #   with open(new_path, 'w') as f:
-      #       f.write(html1)
+        html = open(new_path)
+        soup = BeautifulSoup(html, "html.parser")
+        print(soup)
+        extraSoup = BeautifulSoup('<img  id="imgs" src="static/images/graphon.png">', "html.parser")
+        tag = soup.find(class_='my_img')
+        try:
+            blah = soup.find(id='imgs')
+            blah.extract()
+        except:
+            print("Niema obrazka:(")
+        tag.insert(1, extraSoup.img)
+        with open(new_path, 'w') as f:
+            f.write(str(soup))
         # return render_template("test.html", result=result)
-        return send_file(new_path1, mimetype='image/png')
+        return render_template('index.html')
+    if request.method == 'GET':
+        return render_template('index.html')
 
-# @app.route('')
 if __name__ == "__main__":
     app.run()

@@ -1,21 +1,32 @@
 <html>
-   <body>
-      <form action = "http://localhost:5000/result" method = "POST">
-         <p>tmax: <input type = "text" name = "tmax" value="200" /></p>
-         <p>m: <input type = "text" name = "m"  value="750"/></p>
-         <p>b: <input type = "text" name = "b" value="190"/></p>
-         <p>y0: <input type = "text" name = "y0" value="0" /></p>
-         <p>v0: <input type = "text" name = "v0" value="0"/></p>
-         <p>target: <input type = "text" name = "target" value="100"/></p>
-         <p>v_opt: <input type = "text" name = "v_opt" value="3.5"/></p>
-         <p>f_max: <input type = "text" name = "f_max" value="3000"/></p>
-         <p>user_r_h: <input type = "text" name = "use_r_h" value="1"/></p>
-
-<!--t0, tmax, m=750, b=180.9, y0=0, v0=0, target=100, v_opt=3.5, f_max=3000, use_r_h=True-->
-<!--          tmax, m=750, b=180.9, y0=0, v0=0, target=100, pp=(50, 0.05, 50)-->
-<!--         <p>Chemistry <input type = "text" name = "chemistry" /></p>-->
-<!--         <p>Maths <input type ="text" name = "Mathematics" /></p>-->
-         <p><input type = "submit" value = "submit" /></p>
-      </form>
-   </body>
+<head>
+<style>
+        img {
+  float: right;
+        }
+    form{
+        float: left;
+    }
+    body{
+        background-image: ;
+    }
+    </style>
+</head>
+<body>
+<div>
+<form action="http://localhost:5000/" method="POST">
+<p>tmax: <input name="tmax" type="text" value="200"/></p>
+<p>m: <input name="m" type="text" value="750"/></p>
+<p>b: <input name="b" type="text" value="190"/></p>
+<p>y0: <input name="y0" type="text" value="0"/></p>
+<p>v0: <input name="v0" type="text" value="0"/></p>
+<p>target: <input name="target" type="text" value="100"/></p>
+<p>v_opt: <input name="v_opt" type="text" value="3.5"/></p>
+<p>f_max: <input name="f_max" type="text" value="3000"/></p>
+<p>user_r_h: <input name="use_r_h" type="text" value="1"/></p>
+<p><input type="submit" value="submit"/></p>
+</form>
+</div>
+<div class="my_img"><img id="imgs" src="static/images/graphon.png"/></div>
+</body>
 </html>
